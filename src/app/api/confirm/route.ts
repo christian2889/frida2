@@ -4,7 +4,8 @@ import { createClient } from '@supabase/supabase-js'
 
 // Stripe
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2023-10-16',
+  apiVersion: '2025-05-28.basil' as const,
+
 })
 
 // Supabase - usando la *service-role key* para poder insertar
