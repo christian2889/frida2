@@ -16,7 +16,8 @@ interface CustomerInfo {
 export default function SuccessPage() {
   const searchParams = useSearchParams()
 
-  const [sessionId, setSessionId] = useState<string | null>(null)
+  // const [sessionId, setSessionId] = useState<string | null>(null)
+
   const [eventInfo, setEventInfo] = useState<EventInfo | null>(null)
   const [customer, setCustomer] = useState<CustomerInfo | null>(null)
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading')
@@ -24,7 +25,8 @@ export default function SuccessPage() {
   useEffect(() => {
     const fetchConfirmation = async () => {
       const id = searchParams.get('session_id')
-      setSessionId(id)
+     // setSessionId(id)
+
 
       if (!id) return
 
