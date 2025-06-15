@@ -1,101 +1,66 @@
 'use client'
 
-import { useEffect, useState } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
-import { useAddress } from '@thirdweb-dev/react'
+import { useEffect, useState } from 'react'
 
+interface EventInfo {
+  title: string
+  date: string
+}
 
-interface ConfirmData {
+interface CustomerInfo {
   name: string
   email: string
-  eventTitle: string
 }
 
 export default function SuccessPage() {
-  const address = useAddress()
   const searchParams = useSearchParams()
   const router = useRouter()
-  const sessionId = searchParams.get('session_id')
 
-  const [info, setInfo] = useState<ConfirmData | null>(null)
+  const [sessionId, setSessionId] = useState<string | null>(null)
+  const [eventInfo, setEventInfo] = useState<EventInfo | null>(null)
+  const [customer, setCustomer] = useState<CustomerInfo | null>(null)
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading')
 
   useEffect(() => {
-    if (!sessionId) return
+    const fetchConfirmation = async () => {
+      const id = searchParams.get('session_id')
+      setSessionId(id)
 
-    const confirm = async () => {
-      const res = await fetch(`/api/confirm?session_id=${sessionId}`)
-      if (res.ok) {
+      if (!id) return
+
+      try {
+        const res = await fetch(`/api/confirm?session_id=${id}`)
         const data = await res.json()
-        setInfo(data)
 
-        // ✅ Enviar email de confirmación con Resend
-        await fetch('/api/send-confirmation', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            name: data.name,
-            email: data.email,
-            eventTitle: data.eventTitle,
-          }),
-        })
-        if (address) {
-  await fetch('/api/mint', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      address,
-      eventTitle: data.eventTitle,
-    }),
-  })
-}
-
-        setStatus('success')
-      } else {
+        if (data?.event && data?.customer) {
+          setEventInfo(data.event)
+          setCustomer(data.customer)
+          setStatus('success')
+        } else {
+          setStatus('error')
+        }
+      } catch (error) {
+        console.error('❌ Error fetching confirmation:', error)
         setStatus('error')
       }
     }
 
-    confirm()
-  }, [sessionId])
+    fetchConfirmation()
+  }, [searchParams]) // ✅ agregamos searchParams como dependencia
 
-  if (status === 'loading') {
-    return (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center">
-        <p>Processing your reservation...</p>
-      </div>
-    )
-  }
-
-  if (status === 'error' || !info) {
-    return (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center">
-        <p>❌ There was an error confirming your payment.</p>
-        <button onClick={() => router.push('/events')} className="ml-4 underline">
-          Back to events
-        </button>
-      </div>
-    )
-  }
+  if (status === 'loading') return <p className="text-white p-6">Loading confirmation...</p>
+  if (status === 'error') return <p className="text-red-500 p-6">Something went wrong.</p>
 
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-6">
-      <h1 className="text-4xl font-bold mb-4">🎉 Reservation Confirmed!</h1>
-      <p className="mb-2">Thank you, {info.name}.</p>
+    <div className="min-h-screen bg-black text-white p-6">
+      <h1 className="text-3xl font-bold mb-4">🎉 Reservation Confirmed!</h1>
+      <p className="mb-2">Thank you, {customer?.name}.</p>
       <p className="mb-2">
-        Your reservation for <strong>{info.eventTitle}</strong> is confirmed.
+        You’re confirmed for <strong>{eventInfo?.title}</strong> on{' '}
+        <strong>{eventInfo?.date}</strong>.
       </p>
-      <p className="mb-6">A confirmation email was sent to {info.email}.</p>
-      <button
-        onClick={() => router.push('/my-reservations')}
-        className="px-4 py-2 bg-white text-black rounded hover:bg-gray-200"
-      >
-        View My Reservations
-      </button>
+      <p className="text-green-400">A confirmation email has been sent to {customer?.email}.</p>
     </div>
   )
 }
