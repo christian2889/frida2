@@ -26,6 +26,7 @@ export default function AdminPage() {
       console.error('Insert error:', error)
       setMessage('❌ Error creating event')
     } else {
+      console.log('Insert success:', data) // ✅ Usar `data` aquí
       setMessage('✅ Event created')
       setTitle('')
       setDate('')
