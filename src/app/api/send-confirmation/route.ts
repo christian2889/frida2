@@ -25,14 +25,14 @@ export async function POST(req: NextRequest) {
     })
 
     if (error) {
-      console.error('Email error:', error) // ✅ usar error
+      console.error('Email error:', error) // ✅ usamos error
       return NextResponse.json({ error: 'Email send failed' }, { status: 500 })
     }
 
-    console.log('Email sent:', data) // ✅ usar data
+    console.log('Email sent:', data) // ✅ usamos data
     return NextResponse.json({ success: true })
   } catch (err) {
-    console.error('Server error:', err) // ✅ usar err
+    console.error('Server error:', err) // ✅ usamos err
     return NextResponse.json({ error: 'Server error' }, { status: 500 })
   }
 }
