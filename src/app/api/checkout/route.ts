@@ -1,16 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
-import { createClient } from '@supabase/supabase-js'
-
-// Supabase client (no necesita la service role aquí)
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
-
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2023-10-16' as const,
+  apiVersion: '2022-11-15', // ✅ compatible con tu versión actual de Stripe
 })
 
 export async function POST(req: NextRequest) {
@@ -22,18 +14,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
 
-    // 🧠 Buscar precio del evento en Supabase
-    const { data: event, error } = await supabase
-      .from('events')
-      .select('price')
-      .eq('id', eventId)
-      .single()
-
-    if (error || !event) {
-      return NextResponse.json({ error: 'Event not found' }, { status: 404 })
-    }
-
-    // Crear sesión en Stripe con precio dinámico
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       mode: 'payment',
@@ -41,24 +21,26 @@ export async function POST(req: NextRequest) {
         {
           price_data: {
             currency: 'usd',
-            product_data: { name: eventTitle },
-            unit_amount: event.price,
+            product_data: {
+              name: eventTitle,
+            },
+            unit_amount: 2000, // 💰 Puedes personalizar este valor con tu variable "price"
           },
           quantity: 1,
         },
       ],
-      metadata: {
-        name,
-        email,
-        eventId,
-      },
       success_url: `${process.env.NEXT_PUBLIC_BASE_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/events`,
+      metadata: {
+        eventId,
+        name,
+        email,
+      },
     })
 
     return NextResponse.json({ url: session.url })
-  } catch (error) {
-    console.error('❌ Checkout error:', error)
-    return NextResponse.json({ error: 'Checkout failed' }, { status: 500 })
+  } catch (err) {
+    console.error('Stripe Checkout error:', err)
+    return NextResponse.json({ error: 'Stripe Checkout failed' }, { status: 500 })
   }
 }
