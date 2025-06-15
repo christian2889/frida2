@@ -1,6 +1,6 @@
 'use client'
 
-import { useSearchParams, useRouter } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 
 interface EventInfo {
@@ -15,7 +15,6 @@ interface CustomerInfo {
 
 export default function SuccessPage() {
   const searchParams = useSearchParams()
-  const router = useRouter()
 
   const [sessionId, setSessionId] = useState<string | null>(null)
   const [eventInfo, setEventInfo] = useState<EventInfo | null>(null)
@@ -47,7 +46,7 @@ export default function SuccessPage() {
     }
 
     fetchConfirmation()
-  }, [searchParams]) // ✅ agregamos searchParams como dependencia
+  }, [searchParams]) // ✅ Dependency list correcta
 
   if (status === 'loading') return <p className="text-white p-6">Loading confirmation...</p>
   if (status === 'error') return <p className="text-red-500 p-6">Something went wrong.</p>
