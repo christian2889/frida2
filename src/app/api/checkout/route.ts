@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 
+// ✅ Usa la versión compatible y evita errores de tipo
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2022-11-15', // ✅ compatible con tu versión actual de Stripe
+  apiVersion: '2025-05-28.basil' as const,
 })
 
 export async function POST(req: NextRequest) {
@@ -24,7 +25,7 @@ export async function POST(req: NextRequest) {
             product_data: {
               name: eventTitle,
             },
-            unit_amount: 2000, // 💰 Puedes personalizar este valor con tu variable "price"
+            unit_amount: 2000, // 💰 Puedes personalizar esto si tienes precio dinámico
           },
           quantity: 1,
         },
